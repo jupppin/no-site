@@ -184,6 +184,10 @@ def main(
         error_console.print("[red]Error:[/red] Cannot use --quiet and --verbose together.")
         sys.exit(EXIT_INVALID_INPUT)
 
+    # Fix Windows asyncio cleanup warnings
+    if sys.platform == "win32":
+        asyncio.set_event_loop_policy(asyncio.WindowsSelectorEventLoopPolicy())
+
     try:
         asyncio.run(_run_pipeline(
             location=location,
