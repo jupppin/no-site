@@ -1,0 +1,19 @@
+[build-system]
+requires = ["setuptools>=61.0"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "no-site"
+version = "0.1.0"
+description = "Find local businesses without web presence"
+readme = "README.md"
+requires-python = ">=3.10"
+dependencies = [
+    "aiohttp>=3.9.0",
+    "click>=8.1.0",
+    "rich>=13.0.0",
+    "geopy>=2.4.0",
+]
+
+[project.scripts]
+no-site = "src.main:main"
