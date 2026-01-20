@@ -1,13 +1,12 @@
 # no-site
 
-A Python CLI tool that finds local businesses without websites. Enter a location and radius, and it identifies businesses that lack a web presence - perfect for web developers looking for potential clients.
+A Python CLI tool that exports local businesses for website verification. Enter a location and radius, and it pulls business data from OpenStreetMap - perfect for web developers looking for potential clients.
 
 ## How It Works
 
 1. **Geocode** - Converts your location (zip code or neighborhood) to coordinates using Nominatim
 2. **Fetch** - Queries OpenStreetMap for businesses in the area (shops, restaurants, offices, services)
-3. **Check** - Searches the web to verify which businesses have dedicated websites
-4. **Export** - Outputs a CSV of businesses without websites
+3. **Export** - Outputs a CSV for manual verification
 
 ## Installation
 
@@ -52,16 +51,18 @@ The CSV contains:
 - `business_name` - Name of the business
 - `address` - Street address (when available)
 - `phone` - Phone number (when available)
-- `website_status` - `not_found` for businesses without websites
+- `website_status` - `active` (OSM has website data) or `unknown` (needs verification)
 
 ## Example Output
 
 ```
 business_name,address,phone,website_status
-Joe's Barber Shop,"123 Main St, Buffalo, NY",(716) 555-1234,not_found
-Corner Deli,,,not_found
-Main Street Laundromat,"456 Main St, Buffalo, NY",,not_found
+Starbucks,"235 Delaware Ave, Buffalo, NY",(716) 853-2356,active
+Joe's Barber Shop,"123 Main St, Buffalo, NY",(716) 555-1234,unknown
+Corner Deli,,,unknown
 ```
+
+Focus on the `unknown` entries - those are the businesses that need manual website verification.
 
 ## Tips
 
