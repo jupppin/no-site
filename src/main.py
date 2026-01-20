@@ -256,34 +256,17 @@ async def _run_pipeline(
         if not quiet:
             console.print(f"[yellow]Limiting to {limit} of {total_found} businesses found[/yellow]")
 
-    if verbose and not quiet:
-        console.print(f"  Checking {len(businesses)} businesses")
-
-    # Phase 3: Check websites for each business
-    checked_businesses = await _phase_check_websites(
-        businesses, concurrency, delay, quiet, verbose
-    )
-    if checked_businesses is None:
-        sys.exit(EXIT_WEBSITE_CHECK_ERROR)
-
-    # Phase 4: Filter to businesses without websites
-    no_website = [b for b in checked_businesses if b.has_website is False]
-
+    # Skip website checking - export all businesses for manual verification
     if not quiet:
-        _print_results_summary(len(checked_businesses), len(no_website), verbose)
+        console.print(f"[dim]Found {len(businesses)} businesses to export[/dim]")
 
-    if not no_website:
-        if not quiet:
-            console.print("\n[yellow]All businesses in this area appear to have websites.[/yellow]")
-        sys.exit(EXIT_SUCCESS)
-
-    # Phase 5: Write CSV output
-    success = await _phase_write_output(no_website, output, quiet)
+    # Write CSV output with all businesses
+    success = await _phase_write_output(businesses, output, quiet)
     if not success:
         sys.exit(EXIT_OUTPUT_ERROR)
 
     if not quiet:
-        _print_completion(output, len(no_website))
+        _print_completion(output, len(businesses))
 
     sys.exit(EXIT_SUCCESS)
 
@@ -579,7 +562,7 @@ def _print_completion(output_path: str, count: int) -> None:
     """Print completion message with output location."""
     console.print()
     console.print(Panel.fit(
-        f"[green]Success![/green] Found [bold]{count}[/bold] business{'es' if count != 1 else ''} without websites.\n"
+        f"[green]Success![/green] Exported [bold]{count}[/bold] business{'es' if count != 1 else ''} for review.\n"
         f"Results saved to: [cyan]{output_path}[/cyan]",
         border_style="green",
     ))
