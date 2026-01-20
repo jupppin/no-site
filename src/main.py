@@ -140,6 +140,12 @@ def validate_output_path(ctx: click.Context, param: click.Parameter, value: str)
     help="Delay between website checks in seconds (default: 1.0).",
 )
 @click.option(
+    "--limit", "-n",
+    type=int,
+    default=None,
+    help="Maximum number of businesses to check (default: no limit).",
+)
+@click.option(
     "--verbose", "-v",
     is_flag=True,
     default=False,
@@ -159,6 +165,7 @@ def main(
     output: str,
     concurrency: int,
     delay: float,
+    limit: int | None,
     verbose: bool,
     quiet: bool,
 ) -> None:
@@ -184,6 +191,7 @@ def main(
             output=output,
             concurrency=concurrency,
             delay=delay,
+            limit=limit,
             verbose=verbose,
             quiet=quiet,
         ))
@@ -199,6 +207,7 @@ async def _run_pipeline(
     output: str,
     concurrency: int,
     delay: float,
+    limit: int | None,
     verbose: bool,
     quiet: bool,
 ) -> None:
@@ -210,11 +219,12 @@ async def _run_pipeline(
         output: Output CSV file path.
         concurrency: Max concurrent website checks.
         delay: Delay between checks in seconds.
+        limit: Maximum businesses to check (None for no limit).
         verbose: Enable verbose output.
         quiet: Suppress non-essential output.
     """
     if not quiet:
-        _print_header(location, radius, output)
+        _print_header(location, radius, output, limit)
 
     # Phase 1: Geocode the location
     coordinates = await _phase_geocode(location, quiet)
@@ -235,8 +245,15 @@ async def _run_pipeline(
             console.print("Try increasing the search radius or using a different location.")
         sys.exit(EXIT_SUCCESS)
 
+    # Apply limit if specified
+    total_found = len(businesses)
+    if limit is not None and len(businesses) > limit:
+        businesses = businesses[:limit]
+        if not quiet:
+            console.print(f"[yellow]Limiting to {limit} of {total_found} businesses found[/yellow]")
+
     if verbose and not quiet:
-        console.print(f"  Found {len(businesses)} businesses to check")
+        console.print(f"  Checking {len(businesses)} businesses")
 
     # Phase 3: Check websites for each business
     checked_businesses = await _phase_check_websites(
@@ -267,7 +284,7 @@ async def _run_pipeline(
     sys.exit(EXIT_SUCCESS)
 
 
-def _print_header(location: str, radius: float, output: str) -> None:
+def _print_header(location: str, radius: float, output: str, limit: int | None = None) -> None:
     """Print the startup header with search parameters."""
     console.print()
     console.print(Panel.fit(
@@ -277,6 +294,8 @@ def _print_header(location: str, radius: float, output: str) -> None:
     console.print()
     console.print(f"[dim]Location:[/dim]  {location}")
     console.print(f"[dim]Radius:[/dim]    {radius} mile{'s' if radius != 1 else ''}")
+    if limit:
+        console.print(f"[dim]Limit:[/dim]     {limit} businesses")
     console.print(f"[dim]Output:[/dim]    {output}")
     console.print()
 
